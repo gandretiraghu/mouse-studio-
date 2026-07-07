@@ -24,6 +24,10 @@ make_app() {
   local app="$DMGROOT/${app_name}.app"
   mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources"
   cp "$BIN/$exe" "$app/Contents/MacOS/$exe"
+  # App icon
+  if [ -f "$ROOT/Installer/AppIcon.icns" ]; then
+    cp "$ROOT/Installer/AppIcon.icns" "$app/Contents/Resources/AppIcon.icns"
+  fi
 
   local ui_key=""
   if [ "$ui_element" = "true" ]; then
@@ -39,6 +43,7 @@ make_app() {
     <key>CFBundleDisplayName</key><string>${app_name}</string>
     <key>CFBundleIdentifier</key><string>${bundle_id}</string>
     <key>CFBundleExecutable</key><string>${exe}</string>
+    <key>CFBundleIconFile</key><string>AppIcon</string>
     <key>CFBundlePackageType</key><string>APPL</string>
     <key>CFBundleShortVersionString</key><string>${VERSION}</string>
     <key>CFBundleVersion</key><string>${VERSION}</string>

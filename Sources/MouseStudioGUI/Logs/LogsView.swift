@@ -2,7 +2,7 @@
 import SwiftUI
 import MouseStudioShared
 
-/// Shows recent engine log entries fetched from the service (TDD §15).
+/// Shows recent engine log entries fetched from the service.
 public struct LogsView: View {
     @StateObject private var vm: LogsViewModel
 
@@ -11,27 +11,36 @@ public struct LogsView: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("Logs").font(.headline)
-                Spacer()
-                Button("Refresh") { vm.refresh() }
+        VStack(alignment: .leading, spacing: 16) {
+            ScreenHeader("Logs", subtitle: "Recent engine activity.") {
+                Button { vm.refresh() } label: { Label("Refresh", systemImage: "arrow.clockwise") }
             }
-            List(vm.entries) { entry in
-                HStack(alignment: .top, spacing: 8) {
-                    Text(entry.level.label)
-                        .font(.caption.monospaced())
-                        .foregroundColor(color(for: entry.level))
-                        .frame(width: 52, alignment: .leading)
-                    VStack(alignment: .leading) {
-                        Text(entry.message).font(.body)
-                        Text("\(entry.subsystem) · \(entry.timestamp.formatted(date: .omitted, time: .standard))")
-                            .font(.caption2).foregroundColor(.secondary)
+            Card {
+                if vm.entries.isEmpty {
+                    Text("No log entries yet (or the service isn't running).")
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                } else {
+                    VStack(alignment: .leading, spacing: 6) {
+                        ForEach(vm.entries) { entry in
+                            HStack(alignment: .top, spacing: 10) {
+                                Text(entry.level.label)
+                                    .font(.caption.monospaced().weight(.semibold))
+                                    .foregroundStyle(color(for: entry.level))
+                                    .frame(width: 48, alignment: .leading)
+                                Text(entry.message).font(.callout)
+                                Spacer()
+                                Text(entry.timestamp.formatted(date: .omitted, time: .standard))
+                                    .font(.caption2).foregroundStyle(.secondary)
+                            }
+                        }
                     }
                 }
             }
+            Spacer()
         }
-        .padding()
+        .padding(24)
+        .background(Color(nsColor: .windowBackgroundColor))
         .onAppear { vm.refresh() }
     }
 
