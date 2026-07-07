@@ -85,6 +85,10 @@ let package = Package(
                 "MouseStudioConfig",
                 "MouseStudioShared"
             ]
+        ),
+        .testTarget(
+            name: "ActionsTests",
+            dependencies: ["MouseStudioActions", "MouseStudioShared"]
         )
     ]
 )
