@@ -19,7 +19,8 @@ let package = Package(
         .library(name: "MouseStudioCore", targets: ["MouseStudioCore"]),
         .library(name: "MouseStudioActions", targets: ["MouseStudioActions"]),
         .library(name: "MouseStudioConfig", targets: ["MouseStudioConfig"]),
-        .executable(name: "mousestudio-service", targets: ["MouseStudioService"]),
+        .library(name: "MouseStudioService", targets: ["MouseStudioService"]),
+        .executable(name: "mousestudio-service", targets: ["MouseStudioServiceApp"]),
         .executable(name: "mousestudio-gui", targets: ["MouseStudioGUI"])
     ],
     dependencies: [],
@@ -48,8 +49,8 @@ let package = Package(
             dependencies: ["MouseStudioShared"]
         ),
 
-        // MARK: - Background service (executable)
-        .executableTarget(
+        // MARK: - Background service (library: EngineHost, IPC, menu bar)
+        .target(
             name: "MouseStudioService",
             dependencies: [
                 "MouseStudioCore",
@@ -57,6 +58,12 @@ let package = Package(
                 "MouseStudioConfig",
                 "MouseStudioShared"
             ]
+        ),
+
+        // MARK: - Background service (thin executable)
+        .executableTarget(
+            name: "MouseStudioServiceApp",
+            dependencies: ["MouseStudioService"]
         ),
 
         // MARK: - GUI app (executable; SwiftUI wired in Phase 5)
@@ -89,6 +96,10 @@ let package = Package(
         .testTarget(
             name: "ActionsTests",
             dependencies: ["MouseStudioActions", "MouseStudioShared"]
+        ),
+        .testTarget(
+            name: "ServiceTests",
+            dependencies: ["MouseStudioService", "MouseStudioShared"]
         )
     ]
 )

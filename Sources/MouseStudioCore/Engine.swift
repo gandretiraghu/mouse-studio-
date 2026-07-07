@@ -21,6 +21,10 @@ public final class Engine {
     public var onLearningButton: ((ButtonID) -> Void)?
     private var learning = false
 
+    /// When paused, events are dropped (no gesture resolution or dispatch). The
+    /// event tap keeps running so pause/resume is instant.
+    public var isPaused = false
+
     public init(
         eventSource: EventSource,
         scheduler: Scheduler,
@@ -93,6 +97,7 @@ public final class Engine {
 
     /// Feed a raw event directly (used by tests and by the event source callback).
     public func handle(_ raw: RawEvent) {
+        if isPaused { return }
         // In learning mode, report button-down events for the Live Tester and skip
         // gesture resolution entirely.
         if learning {
