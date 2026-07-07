@@ -1,0 +1,11 @@
+{
+  "id": "generic-3button",
+  "displayName": "Generic 3-Button Mouse",
+  "match": {},
+  "buttons": [
+    { "id": "Left",   "displayName": "Left Click",   "detectable": true },
+    { "id": "Right",  "displayName": "Right Click",  "detectable": true },
+    { "id": "Middle", "displayName": "Middle Click", "detectable": true }
+  ],
+  "supportedGestures": ["single", "double", "long", "chordClick", "chordScrollUp", "chordScrollDown"]
+}

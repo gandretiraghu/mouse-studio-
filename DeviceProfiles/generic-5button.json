@@ -1,0 +1,13 @@
+{
+  "id": "generic-5button",
+  "displayName": "Generic 5-Button Mouse",
+  "match": {},
+  "buttons": [
+    { "id": "Left",    "displayName": "Left Click",   "detectable": true },
+    { "id": "Right",   "displayName": "Right Click",  "detectable": true },
+    { "id": "Middle",  "displayName": "Middle Click", "detectable": true },
+    { "id": "Button4", "displayName": "Side Button 4", "detectable": true },
+    { "id": "Button5", "displayName": "Side Button 5", "detectable": true }
+  ],
+  "supportedGestures": ["single", "double", "long", "chordClick", "chordScrollUp", "chordScrollDown"]
+}

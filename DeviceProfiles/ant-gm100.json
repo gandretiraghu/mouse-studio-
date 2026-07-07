@@ -1,0 +1,13 @@
+{
+  "id": "ant-gm100",
+  "displayName": "ANT Esports GM100",
+  "match": { "productName": "GM100" },
+  "buttons": [
+    { "id": "Left",    "displayName": "Left Click",   "detectable": true },
+    { "id": "Right",   "displayName": "Right Click",  "detectable": true },
+    { "id": "Middle",  "displayName": "Middle Click", "detectable": true },
+    { "id": "Button4", "displayName": "Side Back",    "detectable": true },
+    { "id": "Button5", "displayName": "Side Forward", "detectable": true }
+  ],
+  "supportedGestures": ["single", "double", "long", "chordClick", "chordScrollUp", "chordScrollDown"]
+}
