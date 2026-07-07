@@ -26,18 +26,19 @@ final class IntegrationTests: XCTestCase {
             trigger: TriggerSpec(button: .button4, gesture: .double),
             action: ActionSpec(type: "app.launch", params: ["bundleID": .string("com.apple.finder")])
         )
-        let (_, source, scheduler, provider) = makeEngine(rules: [rule])
+        let (engine, source, scheduler, provider) = makeEngine(rules: [rule])
+        withExtendedLifetime(engine) {
+            source.down(.button4)
+            source.up(.button4)
+            source.down(.button4)
+            source.up(.button4)
 
-        source.down(.button4)
-        source.up(.button4)
-        source.down(.button4)
-        source.up(.button4)
+            XCTAssertEqual(provider.performed.map { $0.type }, ["app.launch"])
+            XCTAssertEqual(provider.performed.first?.params["bundleID"], .string("com.apple.finder"))
 
-        XCTAssertEqual(provider.performed.map { $0.type }, ["app.launch"])
-        XCTAssertEqual(provider.performed.first?.params["bundleID"], .string("com.apple.finder"))
-
-        scheduler.advance(byMs: 500)
-        XCTAssertEqual(provider.performed.count, 1, "no stray single-click action after double")
+            scheduler.advance(byMs: 500)
+            XCTAssertEqual(provider.performed.count, 1, "no stray single-click action after double")
+        }
     }
 
     func testChordClickResolvesEndToEnd() {
@@ -46,22 +47,25 @@ final class IntegrationTests: XCTestCase {
             trigger: TriggerSpec(button: .button4, gesture: .chordClick, chordWith: .left),
             action: ActionSpec(type: "app.switch", params: ["bundleID": .string("com.google.Chrome")])
         )
-        let (_, source, _, provider) = makeEngine(rules: [rule])
+        let (engine, source, _, provider) = makeEngine(rules: [rule])
+        withExtendedLifetime(engine) {
+            source.down(.button4)
+            source.down(.left)
+            source.up(.left)
+            source.up(.button4)
 
-        source.down(.button4)
-        source.down(.left)
-        source.up(.left)
-        source.up(.button4)
-
-        XCTAssertEqual(provider.performed.map { $0.type }, ["app.switch"])
+            XCTAssertEqual(provider.performed.map { $0.type }, ["app.switch"])
+        }
     }
 
     func testUnmappedGestureDispatchesNothing() {
-        let (_, source, scheduler, provider) = makeEngine(rules: [])
-        source.down(.middle)
-        source.up(.middle)
-        scheduler.advance(byMs: 500)
-        XCTAssertTrue(provider.performed.isEmpty)
+        let (engine, source, scheduler, provider) = makeEngine(rules: [])
+        withExtendedLifetime(engine) {
+            source.down(.middle)
+            source.up(.middle)
+            scheduler.advance(byMs: 500)
+            XCTAssertTrue(provider.performed.isEmpty)
+        }
     }
 
     func testLearningModeForwardsButtonsInsteadOfDispatching() {
@@ -71,16 +75,17 @@ final class IntegrationTests: XCTestCase {
             action: ActionSpec(type: "app.launch")
         )
         let (engine, source, _, provider) = makeEngine(rules: [rule])
+        withExtendedLifetime(engine) {
+            var detected: [ButtonID] = []
+            engine.onLearningButton = { detected.append($0) }
+            engine.enterLearningMode()
 
-        var detected: [ButtonID] = []
-        engine.onLearningButton = { detected.append($0) }
-        engine.enterLearningMode()
+            source.down(.button5)
+            source.up(.button5)
 
-        source.down(.button5)
-        source.up(.button5)
-
-        XCTAssertEqual(detected, [.button5])
-        XCTAssertTrue(provider.performed.isEmpty, "no actions dispatched while learning")
+            XCTAssertEqual(detected, [.button5])
+            XCTAssertTrue(provider.performed.isEmpty, "no actions dispatched while learning")
+        }
     }
 
     /// The synchronous resolve+dispatch hot path should be well within the < 5 ms
