@@ -12,7 +12,7 @@ import Foundation
 
 public enum MouseStudio {
     /// Semantic version of the Mouse Studio platform.
-    public static let version = "0.0.1"
+    public static let version = "0.1.0"
     /// Config schema version currently supported.
     public static let schemaVersion = 1
 }
