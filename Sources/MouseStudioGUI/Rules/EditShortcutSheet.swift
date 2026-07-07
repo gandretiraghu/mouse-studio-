@@ -1,6 +1,12 @@
 #if canImport(SwiftUI)
 import SwiftUI
 import MouseStudioShared
+#if canImport(AppKit)
+import AppKit
+#endif
+#if canImport(UniformTypeIdentifiers)
+import UniformTypeIdentifiers
+#endif
 
 /// One-screen add/edit for a shortcut — trigger + action, no multi-step flow.
 public struct EditShortcutSheet: View {
@@ -132,7 +138,13 @@ public struct EditShortcutSheet: View {
 
                 if needsBundleID {
                     labeled("Application") {
-                        TextField("com.apple.finder", text: $bundleID).textFieldStyle(.roundedBorder)
+                        HStack {
+                            Text(bundleID.isEmpty ? "No app chosen" : appDisplayName(bundleID))
+                                .foregroundStyle(bundleID.isEmpty ? .secondary : .primary)
+                                .lineLimit(1)
+                            Spacer()
+                            Button("Choose…") { chooseApp() }
+                        }
                     }
                 }
                 if needsKeys {
@@ -153,6 +165,32 @@ public struct EditShortcutSheet: View {
 
     private var needsBundleID: Bool { actionType == "app.launch" || actionType == "app.switch" }
     private var needsKeys: Bool { actionType == "keystroke.send" }
+
+    /// Friendly display name for a bundle id, if the app is installed.
+    private func appDisplayName(_ id: String) -> String {
+        #if canImport(AppKit)
+        if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: id) {
+            return FileManager.default.displayName(atPath: url.path)
+        }
+        #endif
+        return id
+    }
+
+    /// Open a picker restricted to /Applications and resolve the bundle id.
+    private func chooseApp() {
+        #if canImport(AppKit)
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = false
+        panel.allowsMultipleSelection = false
+        panel.allowedContentTypes = [.application]
+        panel.directoryURL = URL(fileURLWithPath: "/Applications")
+        if panel.runModal() == .OK, let url = panel.url,
+           let id = Bundle(url: url)?.bundleIdentifier {
+            bundleID = id
+        }
+        #endif
+    }
 
     private func build() -> Rule {
         var params: [String: JSONValue] = [:]

@@ -19,9 +19,36 @@ public final class EventTap: EventSource {
     private var runLoopSource: CFRunLoopSource?
     private let runLoop: CFRunLoop
 
+    private let ownedLock = NSLock()
+    private var ownedButtons: Set<ButtonID> = []
+    private var heldOwned: Set<ButtonID> = []
+
     /// - Parameter runLoop: the run loop to attach the tap to (defaults to current).
     public init(runLoop: CFRunLoop = CFRunLoopGetCurrent()) {
         self.runLoop = runLoop
+    }
+
+    public func setOwnedButtons(_ buttons: Set<ButtonID>) {
+        ownedLock.lock(); ownedButtons = buttons; ownedLock.unlock()
+    }
+
+    /// Decide whether to swallow the original OS event, updating held-button
+    /// tracking. Called synchronously from the tap callback (TDD §6.2, §11).
+    fileprivate func shouldSuppress(_ raw: RawEvent) -> Bool {
+        ownedLock.lock(); defer { ownedLock.unlock() }
+        switch raw.type {
+        case .buttonDown:
+            guard let button = raw.button, ownedButtons.contains(button) else { return false }
+            heldOwned.insert(button)
+            return true
+        case .buttonUp:
+            guard let button = raw.button, ownedButtons.contains(button) else { return false }
+            heldOwned.remove(button)
+            return true
+        case .scroll:
+            // Suppress scrolling only while an owned (anchor) button is held.
+            return !heldOwned.isEmpty
+        }
     }
 
     public func start() throws {
@@ -113,10 +140,15 @@ private func eventTapCallback(
     }
 
     if let raw = tap.normalize(type: type, event: event) {
+        // Feed the engine (state machine) first so gestures resolve…
         tap.onEvent?(raw)
+        // …then swallow the original event if this button is mapped, so it
+        // doesn't also trigger the app's default behavior (e.g. browser Back).
+        if tap.shouldSuppress(raw) {
+            return nil
+        }
     }
 
-    // Phase 1: pass every event through unchanged.
     return Unmanaged.passUnretained(event)
 }
 #endif

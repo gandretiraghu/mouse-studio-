@@ -82,4 +82,36 @@ final class RuleEngineTests: XCTestCase {
         ])
         XCTAssertEqual(engine.doubleMappedButtons(), [.button4, .middle])
     }
+
+    func testOwnedButtonsCoversAllAnchors() {
+        let engine = RuleEngine()
+        engine.load([
+            rule("r1", button: .button4, gesture: .double, action: "a"),
+            rule("r2", button: .button4, gesture: .single, action: "a2"),
+            rule("r3", button: .button5, gesture: .chordScrollUp, action: "b"),
+            rule("r4", button: .middle, gesture: .single, action: "c", enabled: false)
+        ])
+        // Disabled rule's button is not owned.
+        XCTAssertEqual(engine.ownedButtons(), [.button4, .button5])
+    }
+}
+
+/// A spy event source that records the owned-buttons set pushed by the engine.
+final class OwnedButtonsSpySource: EventSource {
+    var onEvent: ((RawEvent) -> Void)?
+    private(set) var owned: Set<ButtonID> = []
+    func start() throws {}
+    func stop() {}
+    func setOwnedButtons(_ buttons: Set<ButtonID>) { owned = buttons }
+}
+
+final class EngineOwnedButtonsTests: XCTestCase {
+    func testReloadPushesOwnedButtonsToEventSource() {
+        let source = OwnedButtonsSpySource()
+        let engine = Engine(eventSource: source, scheduler: ManualScheduler(), logger: Logger(level: .error))
+        engine.reload(rules: [
+            Rule(id: "r", trigger: TriggerSpec(button: .button4, gesture: .double), action: ActionSpec(type: "app.launch"))
+        ])
+        XCTAssertEqual(source.owned, [.button4])
+    }
 }

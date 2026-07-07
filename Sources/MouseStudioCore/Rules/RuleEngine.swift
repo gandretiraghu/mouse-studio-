@@ -67,6 +67,13 @@ public final class RuleEngine {
         return set
     }
 
+    /// Anchor buttons that own at least one rule. The event tap swallows the raw
+    /// OS events for these so the mapped button doesn't also trigger its default
+    /// system/app behavior (e.g. browser Back) — TDD §6.2.
+    public func ownedButtons() -> Set<ButtonID> {
+        Set(compiled.keys.map { $0.button })
+    }
+
     public var ruleCount: Int { compiled.count }
 
     // MARK: - Key derivation

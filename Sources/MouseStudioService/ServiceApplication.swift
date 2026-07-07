@@ -12,7 +12,7 @@ import AppKit
 public final class ServiceApplication: NSObject, NSApplicationDelegate {
     private var host: EngineHost!
     private var menuBar: MenuBarController!
-    private var configWatcher: ConfigWatcher?
+    private var configWatchers: [ConfigWatcher] = []
     private var ipcServer: SocketIPCServer?
     private let logger = Logger(level: .info)
 
@@ -39,13 +39,15 @@ public final class ServiceApplication: NSObject, NSApplicationDelegate {
             logger.warn("Grant Accessibility in System Settings › Privacy & Security, then reopen.", subsystem: "app")
         }
 
-        // Apply GUI config edits live by watching the config directory.
-        let configRoot = ConfigPaths.defaultUserPaths().root
-        let watcher = ConfigWatcher(directory: configRoot) { [weak self] in
-            self?.host.reloadConfig()
-        }
-        watcher.start()
-        configWatcher = watcher
+        // Apply GUI config edits live by watching both the config root (config.json)
+        // and the profiles subdirectory (rule files live there).
+        let paths = ConfigPaths.defaultUserPaths()
+        let reload: () -> Void = { [weak self] in self?.host.reloadConfig() }
+        let rootWatcher = ConfigWatcher(directory: paths.root, onChange: reload)
+        let profilesWatcher = ConfigWatcher(directory: paths.profilesDir, onChange: reload)
+        rootWatcher.start()
+        profilesWatcher.start()
+        configWatchers = [rootWatcher, profilesWatcher]
 
         // Start the IPC server so the GUI can drive status, live tester, and logs.
         let server = SocketIPCServer(host: host)

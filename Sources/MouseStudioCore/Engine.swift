@@ -53,6 +53,7 @@ public final class Engine {
         if let timing = timing { stateMachine.timing = timing }
         ruleEngine.load(rules)
         stateMachine.setDoubleMappedButtons(ruleEngine.doubleMappedButtons())
+        eventSource.setOwnedButtons(ruleEngine.ownedButtons())
         logger.info("Loaded \(ruleEngine.ruleCount) rule(s); shadowed: \(ruleEngine.shadowedRuleIDs.count)", subsystem: "engine")
     }
 

@@ -11,6 +11,13 @@ public protocol EventSource: AnyObject {
     func start() throws
     /// Stop delivering events and release resources.
     func stop()
+    /// Buttons whose raw OS events should be swallowed (they are mapped). The
+    /// real event tap uses this for suppression; test sources may ignore it.
+    func setOwnedButtons(_ buttons: Set<ButtonID>)
+}
+
+public extension EventSource {
+    func setOwnedButtons(_ buttons: Set<ButtonID>) {}
 }
 
 /// Errors an `EventSource` may throw when starting.
