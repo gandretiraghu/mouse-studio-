@@ -1,5 +1,6 @@
 import Foundation
 import MouseStudioCore
+import MouseStudioConfig
 import MouseStudioShared
 
 #if canImport(AppKit)
@@ -11,6 +12,7 @@ import AppKit
 public final class ServiceApplication: NSObject, NSApplicationDelegate {
     private var host: EngineHost!
     private var menuBar: MenuBarController!
+    private var configWatcher: ConfigWatcher?
     private let logger = Logger(level: .info)
 
     public static func run() -> Never {
@@ -35,6 +37,14 @@ public final class ServiceApplication: NSObject, NSApplicationDelegate {
         if status == .permissionRequired {
             logger.warn("Grant Accessibility in System Settings › Privacy & Security, then reopen.", subsystem: "app")
         }
+
+        // Apply GUI config edits live by watching the config directory.
+        let configRoot = ConfigPaths.defaultUserPaths().root
+        let watcher = ConfigWatcher(directory: configRoot) { [weak self] in
+            self?.host.reloadConfig()
+        }
+        watcher.start()
+        configWatcher = watcher
     }
 
     /// Locate device profiles shipped next to the executable or in the app bundle.

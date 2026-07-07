@@ -12,7 +12,7 @@ import PackageDescription
 let package = Package(
     name: "MouseStudio",
     platforms: [
-        .macOS(.v13)
+        .macOS(.v14)
     ],
     products: [
         .library(name: "MouseStudioShared", targets: ["MouseStudioShared"]),
@@ -20,8 +20,9 @@ let package = Package(
         .library(name: "MouseStudioActions", targets: ["MouseStudioActions"]),
         .library(name: "MouseStudioConfig", targets: ["MouseStudioConfig"]),
         .library(name: "MouseStudioService", targets: ["MouseStudioService"]),
+        .library(name: "MouseStudioGUI", targets: ["MouseStudioGUI"]),
         .executable(name: "mousestudio-service", targets: ["MouseStudioServiceApp"]),
-        .executable(name: "mousestudio-gui", targets: ["MouseStudioGUI"])
+        .executable(name: "mousestudio-gui", targets: ["MouseStudioGUIApp"])
     ],
     dependencies: [],
     targets: [
@@ -66,13 +67,19 @@ let package = Package(
             dependencies: ["MouseStudioService"]
         ),
 
-        // MARK: - GUI app (executable; SwiftUI wired in Phase 5)
-        .executableTarget(
+        // MARK: - GUI (library: SwiftUI views + testable view models)
+        .target(
             name: "MouseStudioGUI",
             dependencies: [
                 "MouseStudioConfig",
                 "MouseStudioShared"
             ]
+        ),
+
+        // MARK: - GUI (thin executable; @main App)
+        .executableTarget(
+            name: "MouseStudioGUIApp",
+            dependencies: ["MouseStudioGUI"]
         ),
 
         // MARK: - Tests
@@ -100,6 +107,10 @@ let package = Package(
         .testTarget(
             name: "ServiceTests",
             dependencies: ["MouseStudioService", "MouseStudioShared"]
+        ),
+        .testTarget(
+            name: "GUITests",
+            dependencies: ["MouseStudioGUI", "MouseStudioConfig", "MouseStudioShared"]
         )
     ]
 )
