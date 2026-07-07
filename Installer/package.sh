@@ -74,15 +74,20 @@ chmod +x "$DMGROOT/Install.command" "$DMGROOT/Uninstall.command"
 cat > "$DMGROOT/README.txt" <<TXT
 Mouse Studio ${VERSION}
 
-To install:
-  1. Double-click Install.command (right-click → Open if Gatekeeper warns).
-  2. Grant Accessibility permission to MouseStudioService in
+This build is ad-hoc signed (not notarized), so macOS Gatekeeper blocks the
+installer if you double-click it. Install from Terminal instead — it's easy:
+
+  1. Open Terminal (press Cmd-Space, type "Terminal", Enter).
+  2. Type:  bash    (with a trailing space)
+  3. Drag the Install.command file from this window into the Terminal window,
+     then press Enter.
+     (Or run: bash "/Volumes/Mouse Studio ${VERSION}/Install.command")
+  4. Grant Accessibility permission to MouseStudioService in
      System Settings › Privacy & Security › Accessibility.
 
-To remove: double-click Uninstall.command.
+The installer clears the quarantine flag, so the apps open normally afterwards.
 
-Note: this build is ad-hoc signed (not notarized), so macOS may warn on first
-launch. Right-click the app and choose Open to proceed.
+To remove:  bash "/Volumes/Mouse Studio ${VERSION}/Uninstall.command"
 TXT
 
 echo "==> Building disk image…"

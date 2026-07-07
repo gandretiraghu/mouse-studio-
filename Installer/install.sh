@@ -13,6 +13,11 @@ rm -rf "/Applications/MouseStudio.app" "/Applications/MouseStudioService.app"
 cp -R "$HERE/MouseStudio.app" /Applications/
 cp -R "$HERE/MouseStudioService.app" /Applications/
 
+# This build is ad-hoc signed (not notarized). Clear the quarantine flag on the
+# installed apps so they launch without a Gatekeeper prompt.
+xattr -dr com.apple.quarantine "/Applications/MouseStudio.app" 2>/dev/null || true
+xattr -dr com.apple.quarantine "/Applications/MouseStudioService.app" 2>/dev/null || true
+
 # Register the background service (LaunchAgent).
 mkdir -p "$HOME/Library/LaunchAgents"
 cp "$HERE/com.mousestudio.service.plist" "$AGENT"
