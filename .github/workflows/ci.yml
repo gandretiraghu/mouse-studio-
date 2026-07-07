@@ -47,25 +47,15 @@ jobs:
       - name: Select latest Xcode
         run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 
-      - name: Build (release)
-        run: swift build -c release -v
-
-      - name: Package artifacts
+      - name: Package .app bundles + .dmg installer
         id: package
         run: |
           set -euo pipefail
           VERSION="0.1.${{ github.run_number }}"
-          BIN_DIR="$(swift build -c release --show-bin-path)"
-          STAGE="MouseStudio-${VERSION}"
-          mkdir -p "dist/${STAGE}/bin" "dist/${STAGE}/DeviceProfiles"
-          # Compiled binaries (CLI service + GUI scaffold; full .app comes in a later phase)
-          cp "${BIN_DIR}/mousestudio-service" "dist/${STAGE}/bin/" 2>/dev/null || true
-          cp "${BIN_DIR}/mousestudio-gui" "dist/${STAGE}/bin/" 2>/dev/null || true
-          cp DeviceProfiles/*.json "dist/${STAGE}/DeviceProfiles/"
-          cp README.md LICENSE "dist/${STAGE}/"
-          ( cd dist && zip -r "${STAGE}.zip" "${STAGE}" >/dev/null )
+          chmod +x Installer/*.sh
+          Installer/package.sh "$VERSION"
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-          echo "asset=dist/${STAGE}.zip" >> "$GITHUB_OUTPUT"
+          echo "asset=dist/MouseStudio-${VERSION}.dmg" >> "$GITHUB_OUTPUT"
           ls -la dist
 
       - name: Create GitHub Release
@@ -77,13 +67,15 @@ jobs:
           TAG="v${VERSION}"
           NOTES="Automated prerelease build from commit ${GITHUB_SHA}.
 
-          Contains compiled binaries for the Mouse Studio background service and the
-          GUI scaffold. This is an early Phase 1 build (core engine); the full native
-          .app and installer arrive in later phases.
+          Contains a .dmg with the Mouse Studio GUI app and the background service,
+          plus Install/Uninstall helpers.
 
-          - Core automation engine (state machine, rule engine, dispatcher)
+          - Native Swift automation engine + config layer + actions
+          - Background service (menu bar) with Unix-socket IPC
+          - SwiftUI settings app (rules, wizard, action browser, live tester, backup)
           - Device profiles: ANT GM100 + generic 3/5-button
-          "
+
+          Ad-hoc signed (not notarized): right-click the app and choose Open on first launch."
           gh release create "$TAG" "${{ steps.package.outputs.asset }}" \
             --title "Mouse Studio $TAG" \
             --notes "$NOTES" \

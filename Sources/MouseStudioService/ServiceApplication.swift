@@ -13,6 +13,7 @@ public final class ServiceApplication: NSObject, NSApplicationDelegate {
     private var host: EngineHost!
     private var menuBar: MenuBarController!
     private var configWatcher: ConfigWatcher?
+    private var ipcServer: SocketIPCServer?
     private let logger = Logger(level: .info)
 
     public static func run() -> Never {
@@ -45,6 +46,16 @@ public final class ServiceApplication: NSObject, NSApplicationDelegate {
         }
         watcher.start()
         configWatcher = watcher
+
+        // Start the IPC server so the GUI can drive status, live tester, and logs.
+        let server = SocketIPCServer(host: host)
+        do {
+            try server.start()
+            ipcServer = server
+            logger.info("IPC server listening", subsystem: "app")
+        } catch {
+            logger.error("IPC server failed to start: \(error)", subsystem: "app")
+        }
     }
 
     /// Locate device profiles shipped next to the executable or in the app bundle.

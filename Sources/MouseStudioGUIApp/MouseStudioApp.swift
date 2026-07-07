@@ -11,7 +11,8 @@ import SwiftUI
 @main
 struct MouseStudioApp: App {
     private let store = FileConfigStore(paths: ConfigPaths.defaultUserPaths())
-    private let ipc: IPCClient = StubIPCClient()
+    // Connect to the running service; fall back to a stub for offline editing.
+    private let ipc: IPCClient = makeIPCClient()
 
     var body: some Scene {
         WindowGroup("Mouse Studio") {

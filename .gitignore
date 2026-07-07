@@ -3,6 +3,9 @@
 .swiftpm/
 Package.resolved
 
+# Packaging output
+dist/
+
 # Xcode
 *.xcodeproj/
 *.xcworkspace/
